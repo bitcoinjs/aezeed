@@ -8,6 +8,14 @@ const mnemonic =
   'above judge emerge veteran reform crunch system all ' +
   'snap please shoulder vault hurt city quarter cover enlist ' +
   'swear success suggest drink wagon enrich body';
+const wrongLength =
+  'above judge emerge veteran reform crunch system all ' +
+  'snap please shoulder vault hurt city quarter cover enlist ' +
+  'swear success suggest drink wagon enrich body body';
+const wrongWord =
+  'zzzzz judge emerge veteran reform crunch system all ' +
+  'snap please shoulder vault hurt city quarter cover enlist ' +
+  'swear success suggest drink wagon enrich body';
 
 describe('mnemonic', () => {
   it('should convert mnemonic to bytes', () => {
@@ -15,5 +23,15 @@ describe('mnemonic', () => {
   });
   it('should convert bytes to mnemonic', () => {
     expect(mnemonicFromBytes(bytes)).toEqual(mnemonic);
+  });
+  it('should fail with wrong word count', () => {
+    expect(() => {
+      mnemonicToBytes(wrongLength);
+    }).toThrow(/^Invalid Mnemonic$/);
+  });
+  it('should fail with unknown word', () => {
+    expect(() => {
+      mnemonicToBytes(wrongWord);
+    }).toThrow(/^Invalid Mnemonic$/);
   });
 });

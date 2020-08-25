@@ -1,31 +1,21 @@
 import * as scrypt from 'scryptsy';
 import * as rng from 'randombytes';
 import * as mn from './mnemonic';
+import {
+  PARAMS,
+  DEFAULT_PASSWORD,
+  ONE_DAY,
+  CIPHER_SEED_VERSION,
+} from './params';
 const aez = require('aez');
 const crc = require('crc-32');
 
-const PARAMS = [
-  {
-    // version 0
-    n: 32768,
-    r: 8,
-    p: 1,
-  },
-];
-
-const DEFAULT_PASSWORD = 'aezeed';
 const BITCOIN_GENESIS = new Date('2009-01-03T18:15:05.000Z').getTime();
-const CIPHER_SEED_VERSION = 0;
+const daysSinceGenesis = (time: Date): number =>
+  Math.floor((time.getTime() - BITCOIN_GENESIS) / ONE_DAY);
 
 export class CipherSeed {
-  entropy: Buffer;
-  birthday: number;
-  private salt: Buffer;
-
-  private static decipher(
-    cipherBuf: Buffer,
-    password: string = DEFAULT_PASSWORD,
-  ): CipherSeed {
+  private static decipher(cipherBuf: Buffer, password: string): CipherSeed {
     if (cipherBuf[0] >= PARAMS.length) {
       throw new Error('Invalid cipherSeedVersion');
     }
@@ -61,12 +51,12 @@ export class CipherSeed {
     );
     if (plainText === null) throw new Error('Invalid Password');
 
-    const newCS = new CipherSeed();
-    newCS.internalVersion = plainText[0];
-    newCS.birthday = plainText.readUInt16BE(1);
-    newCS.entropy = plainText.slice(3, 19);
-    newCS.salt = salt;
-    return newCS;
+    return new CipherSeed(
+      plainText.slice(3, 19),
+      salt,
+      plainText[0],
+      plainText.readUInt16BE(1),
+    );
   }
 
   static fromMnemonic(
@@ -77,25 +67,43 @@ export class CipherSeed {
     return CipherSeed.decipher(bytes, password);
   }
 
+  static random(): CipherSeed {
+    return new CipherSeed(rng(16), rng(5));
+  }
+
+  static changePassword(
+    mnemonic: string,
+    oldPassword: string | null,
+    newPassword: string,
+  ): string {
+    const pwd = oldPassword === null ? DEFAULT_PASSWORD : oldPassword;
+    const cs = CipherSeed.fromMnemonic(mnemonic, pwd);
+    return cs.toMnemonic(newPassword);
+  }
+
   constructor(
+    public entropy: Buffer,
+    public salt: Buffer,
     public internalVersion: number = 0,
-    entropy?: Buffer,
-    now?: Date,
+    public birthday: number = daysSinceGenesis(new Date()),
   ) {
     if (entropy && entropy.length !== 16)
       throw new Error('incorrect entropy length');
-    this.entropy = entropy ? entropy : rng(16);
-    const birthDate = now ? now : new Date();
-    this.birthday = Math.floor(
-      (birthDate.getTime() - BITCOIN_GENESIS) / (24 * 60 * 60 * 1000),
-    );
-    this.salt = rng(5);
+    if (salt && salt.length !== 5) throw new Error('incorrect salt length');
   }
 
-  private encipher(
+  get birthDate(): Date {
+    return new Date(BITCOIN_GENESIS + this.birthday * ONE_DAY);
+  }
+
+  toMnemonic(
     password: string = DEFAULT_PASSWORD,
     cipherSeedVersion: number = CIPHER_SEED_VERSION,
-  ): Buffer {
+  ): string {
+    return mn.mnemonicFromBytes(this.encipher(password, cipherSeedVersion));
+  }
+
+  private encipher(password: string, cipherSeedVersion: number): Buffer {
     const pwBuf = Buffer.from(password, 'utf8');
     const params = PARAMS[cipherSeedVersion];
     const key = scrypt(pwBuf, this.salt, params.n, params.r, params.p, 32);
@@ -120,12 +128,5 @@ export class CipherSeed {
     cipherSeedBytes.writeInt32BE(checksumNum, 29);
 
     return cipherSeedBytes;
-  }
-
-  toMnemonic(
-    password: string = DEFAULT_PASSWORD,
-    cipherSeedVersion: number = CIPHER_SEED_VERSION,
-  ): string {
-    return mn.mnemonicFromBytes(this.encipher(password, cipherSeedVersion));
   }
 }
