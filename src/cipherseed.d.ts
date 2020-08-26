@@ -1,4 +1,5 @@
 /// <reference types="node" />
+export declare const daysSinceGenesis: (time: Date) => number;
 export declare class CipherSeed {
     entropy: Buffer;
     salt: Buffer;

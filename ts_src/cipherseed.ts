@@ -11,7 +11,7 @@ const aez = require('aez');
 const crc = require('crc-32');
 
 const BITCOIN_GENESIS = new Date('2009-01-03T18:15:05.000Z').getTime();
-const daysSinceGenesis = (time: Date): number =>
+export const daysSinceGenesis = (time: Date): number =>
   Math.floor((time.getTime() - BITCOIN_GENESIS) / ONE_DAY);
 
 export class CipherSeed {

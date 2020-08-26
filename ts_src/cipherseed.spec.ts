@@ -1,31 +1,23 @@
 import { mocked } from 'ts-jest/utils';
 import * as params from './params';
-jest.mock('./params');
-const mockedParams = mocked(params, true);
-mockedParams.PARAMS[0] = {
-  n: 16,
-  r: 8,
-  p: 1,
-};
-import { CipherSeed } from './cipherseed';
-
-const entropy = Buffer.from('dadeb38984dadeb38984dadeb3898442', 'hex');
-const CSEED = new CipherSeed(entropy, Buffer.from('dadeb38984', 'hex'), 0, 0);
-const mnemonic =
-  'abandon razor cage merit again upon sort only grace brother ' +
-  'dinosaur reform path poverty despair detail tattoo bitter ' +
-  'response grow obscure broccoli dirt swallow';
-
-const wrongChecksum =
-  'above judge emerge veteran reform crunch system all ' +
-  'snap please shoulder vault hurt city quarter cover enlist ' +
-  'swear success suggest drink wagon enrich boil';
-const wrongVersion =
-  'airport judge emerge veteran reform crunch system all ' +
-  'snap please shoulder vault hurt city quarter cover enlist ' +
-  'swear success suggest drink wagon enrich body';
+import { CipherSeed, daysSinceGenesis } from './cipherseed';
+let lndVersion0TestVectors: any[];
 
 describe('CipherSeed', () => {
+  it('should pass lnd vectors', () => {
+    lndVersion0TestVectors.forEach((vector) => {
+      const birthday = daysSinceGenesis(vector.time);
+      expect(birthday).toBe(vector.expectedBirthday);
+      const seed = new CipherSeed(
+        vector.entropy,
+        vector.salt,
+        vector.version,
+        birthday,
+      );
+      const mnemonic = seed.toMnemonic(vector.password);
+      expect(mnemonic).toBe(vector.expectedMnemonic);
+    });
+  });
   it('should decode from mnemonic', () => {
     const cSeed = CipherSeed.fromMnemonic(mnemonic);
     expect(cSeed).toEqual(CSEED);
@@ -89,3 +81,63 @@ describe('CipherSeed', () => {
     }).toThrow(/^incorrect salt length$/);
   });
 });
+
+// Mock the PARAMS to make them weaking, testing is faster.
+// These mock params match LND (so we can test against their vectors)
+jest.mock('./params');
+const mockedParams = mocked(params, true);
+mockedParams.PARAMS[0] = {
+  n: 16,
+  r: 8,
+  p: 1,
+};
+
+const entropy = Buffer.from('dadeb38984dadeb38984dadeb3898442', 'hex');
+const CSEED = new CipherSeed(entropy, Buffer.from('dadeb38984', 'hex'), 0, 0);
+const mnemonic =
+  'abandon razor cage merit again upon sort only grace brother ' +
+  'dinosaur reform path poverty despair detail tattoo bitter ' +
+  'response grow obscure broccoli dirt swallow';
+
+const wrongChecksum =
+  'above judge emerge veteran reform crunch system all ' +
+  'snap please shoulder vault hurt city quarter cover enlist ' +
+  'swear success suggest drink wagon enrich boil';
+const wrongVersion =
+  'airport judge emerge veteran reform crunch system all ' +
+  'snap please shoulder vault hurt city quarter cover enlist ' +
+  'swear success suggest drink wagon enrich body';
+
+// From LND repository
+// ./aezeed/cipherseed_test.go#L23-L63
+// at commit 63bd8e77760f77650e854e69cff5b8a4acc18862
+
+const testEntropy = Buffer.from('81b637d86359e6960de795e41e0b4cfd', 'hex');
+const testSalt = Buffer.from([0x73, 0x61, 0x6c, 0x74, 0x31]);
+const BitcoinGenesisDate = new Date('2009-01-03T18:15:05.000Z');
+lndVersion0TestVectors = [
+  {
+    version: 0,
+    time: BitcoinGenesisDate,
+    entropy: testEntropy,
+    salt: testSalt,
+    password: undefined,
+    expectedMnemonic:
+      'ability liquid travel stem barely drastic pact cupboard apple thrive ' +
+      'morning oak feature tissue couch old math inform success suggest drink ' +
+      'motion know royal',
+    expectedBirthday: 0,
+  },
+  {
+    version: 0,
+    time: new Date(1521799345000), // 03/23/2018 @ 10:02am (UTC)
+    entropy: testEntropy,
+    salt: testSalt,
+    password: '!very_safe_55345_password*',
+    expectedMnemonic:
+      'able tree stool crush transfer cloud cross three profit outside hen ' +
+      'citizen plate ride require leg siren drum success suggest drink ' +
+      'require fiscal upgrade',
+    expectedBirthday: 3365,
+  },
+];

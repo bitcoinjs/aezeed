@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CipherSeed = void 0;
+exports.CipherSeed = exports.daysSinceGenesis = void 0;
 const scrypt = require("scryptsy");
 const rng = require("randombytes");
 const mn = require("./mnemonic");
@@ -8,9 +8,9 @@ const params_1 = require("./params");
 const aez = require('aez');
 const crc = require('crc-32');
 const BITCOIN_GENESIS = new Date('2009-01-03T18:15:05.000Z').getTime();
-const daysSinceGenesis = (time) => Math.floor((time.getTime() - BITCOIN_GENESIS) / params_1.ONE_DAY);
+exports.daysSinceGenesis = (time) => Math.floor((time.getTime() - BITCOIN_GENESIS) / params_1.ONE_DAY);
 class CipherSeed {
-    constructor(entropy, salt, internalVersion = 0, birthday = daysSinceGenesis(new Date())) {
+    constructor(entropy, salt, internalVersion = 0, birthday = exports.daysSinceGenesis(new Date())) {
         this.entropy = entropy;
         this.salt = salt;
         this.internalVersion = internalVersion;
