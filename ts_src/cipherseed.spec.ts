@@ -1,23 +1,32 @@
 import { mocked } from 'ts-jest/utils';
 import * as params from './params';
 import { CipherSeed, daysSinceGenesis } from './cipherseed';
-let lndVersion0TestVectors: any[];
+let lndVersion0TestVectors: Vector[];
+let extraVersion0TestVectors: Vector[];
 
 describe('CipherSeed', () => {
+  // This is used for running the various vectors
+  const runVector = (vector: Vector): void => {
+    const birthday = daysSinceGenesis(vector.time);
+    expect(birthday).toBe(vector.expectedBirthday);
+    const seed = new CipherSeed(
+      vector.entropy,
+      vector.salt,
+      vector.version,
+      birthday,
+    );
+    const mnemonic = seed.toMnemonic(vector.password);
+    expect(mnemonic).toBe(vector.expectedMnemonic);
+  };
+
+  // Actually run each vector
   it('should pass lnd vectors', () => {
-    lndVersion0TestVectors.forEach((vector) => {
-      const birthday = daysSinceGenesis(vector.time);
-      expect(birthday).toBe(vector.expectedBirthday);
-      const seed = new CipherSeed(
-        vector.entropy,
-        vector.salt,
-        vector.version,
-        birthday,
-      );
-      const mnemonic = seed.toMnemonic(vector.password);
-      expect(mnemonic).toBe(vector.expectedMnemonic);
-    });
+    lndVersion0TestVectors.forEach(runVector);
   });
+  it('should pass extra vectors', () => {
+    extraVersion0TestVectors.forEach(runVector);
+  });
+
   it('should decode from mnemonic', () => {
     const cSeed = CipherSeed.fromMnemonic(mnemonic);
     expect(cSeed).toEqual(CSEED);
@@ -141,3 +150,28 @@ lndVersion0TestVectors = [
     expectedBirthday: 3365,
   },
 ];
+
+extraVersion0TestVectors = [
+  {
+    version: 0,
+    time: new Date(4062184705000), // 09/22/2098 @ 12:38:25am (UTC)
+    entropy: testEntropy,
+    salt: testSalt,
+    password: 'LsD58g1jZH3dKsSpdaVa6J9Lxd',
+    expectedMnemonic:
+      'abandon spare anxiety dry resemble hub false behind bachelor van ' +
+      'express chunk belt flat flash junior moon fatal success suggest ' +
+      'drink share document thrive',
+    expectedBirthday: 0x8000, // 0x8000 to make sure we handle unsigned properly
+  },
+];
+
+interface Vector {
+  version: number;
+  time: Date;
+  entropy: Buffer;
+  salt: Buffer;
+  password?: string;
+  expectedMnemonic: string;
+  expectedBirthday: number;
+}
