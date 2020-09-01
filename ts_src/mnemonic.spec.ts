@@ -1,13 +1,15 @@
 import { mnemonicFromBytes, mnemonicToBytes } from './mnemonic';
 
 const bytes = Buffer.from(
-  '008f1522f99b4469f73033cd54cf1bf8e6fc52ebd98c4adb73616c7431ec92c0c7',
+  '000a9f416caaa8988c1848a053fc14f6bb815981eea3195b481d4efe3eb8846b3f',
   'hex',
 );
+
+// This is a valid aezeed v0, a valid BIP39, and a valid Electrum v2 segwit seed
 const mnemonic =
-  'above judge emerge veteran reform crunch system all ' +
-  'snap please shoulder vault hurt city quarter cover enlist ' +
-  'swear success suggest drink wagon enrich body';
+  'abandon female space sun pride era corn animal park paper ' +
+  'ahead uniform retreat proud amateur stamp bone surge also ' +
+  'over token fox balance gun';
 const wrongLength =
   'above judge emerge veteran reform crunch system all ' +
   'snap please shoulder vault hurt city quarter cover enlist ' +
