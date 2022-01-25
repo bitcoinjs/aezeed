@@ -39,7 +39,7 @@
   "homepage": "https://github.com/bitcoinjs/aezeed#readme",
   "dependencies": {
     "aez": "^1.0.1",
-    "crc-32": "npm:junderw-crc32c@^1.2.0",
+    "crc-32": "^1.2.1",
     "randombytes": "^2.1.0",
     "scryptsy": "^2.1.0"
   },
