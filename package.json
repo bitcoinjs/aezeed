@@ -1,6 +1,6 @@
 {
   "name": "aezeed",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A package for encoding, decoding, and generating mnemonics of the aezeed specification.",
   "main": "src/cipherseed.js",
   "types": "src/cipherseed.d.ts",
