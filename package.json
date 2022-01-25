@@ -1,6 +1,6 @@
 {
   "name": "aezeed",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A package for encoding, decoding, and generating mnemonics of the aezeed specification.",
   "main": "src/cipherseed.js",
   "types": "src/cipherseed.d.ts",
@@ -39,7 +39,7 @@
   "homepage": "https://github.com/bitcoinjs/aezeed#readme",
   "dependencies": {
     "aez": "^1.0.1",
-    "crc-32": "npm:junderw-crc32c@^1.2.0",
+    "crc-32": "^1.2.1",
     "randombytes": "^2.1.0",
     "scryptsy": "^2.1.0"
   },

@@ -8,7 +8,7 @@ import {
   CIPHER_SEED_VERSION,
 } from './params';
 const aez = require('aez');
-const crc = require('crc-32');
+const crc = require('crc-32/crc32c');
 
 const BITCOIN_GENESIS = new Date('2009-01-03T18:15:05.000Z').getTime();
 export const daysSinceGenesis = (time: Date): number =>

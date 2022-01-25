@@ -6,7 +6,7 @@ const rng = require("randombytes");
 const mn = require("./mnemonic");
 const params_1 = require("./params");
 const aez = require('aez');
-const crc = require('crc-32');
+const crc = require('crc-32/crc32c');
 const BITCOIN_GENESIS = new Date('2009-01-03T18:15:05.000Z').getTime();
 exports.daysSinceGenesis = (time) => Math.floor((time.getTime() - BITCOIN_GENESIS) / params_1.ONE_DAY);
 class CipherSeed {
